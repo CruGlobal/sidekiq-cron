@@ -272,7 +272,12 @@ module Sidekiq
 
         #set last enqueue time - from args or from existing job
         if args['last_enqueue_time'] && !args['last_enqueue_time'].empty?
-          @last_enqueue_time = Time.parse(args['last_enqueue_time'])
+          begin
+            @last_enqueue_time = Time.parse(args['last_enqueue_time'])
+          rescue ArgumentError
+            logger.info { "Cron Jobs - Initializer encountered error parsing last_enqueue_time value #{args['last_enqueue_time'].inspect}, continuing with last_enqueue_time_from_redis" }
+            last_enqueue_time_from_redis
+          end
         else
           @last_enqueue_time = last_enqueue_time_from_redis
         end
